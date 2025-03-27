@@ -49,17 +49,17 @@ struct pcb_t * get_mlq_proc(void) {
 	/*FIXME: get a process from PRIORITY [ready_queue].
 	 * Remember to use lock to protect the queue.
 	 * */
-	struct pcb_t * proc = NULL;
-    /* Sử dụng khóa để đảm bảo hàng đợi không bị truy cập đồng thời */
-    pthread_mutex_lock(&queue_lock);
-    /* Lấy tiến trình từ hàng đợi ưu tiên cao nhất */
-    for (int i = 0; i < MAX_PRIO; i++) {
-        if (!is_empty(&mlq_ready_queue[i])) {  // Kiểm tra nếu hàng đợi không rỗng
-            proc = dequeue(&mlq_ready_queue[i]);
-            break;
-        }
-    }
-    pthread_mutex_unlock(&queue_lock);
+	if(empty(&ready_queue)) {
+		for(int i = 0; i < run_queue.size; i++){
+			add_proc(run_queue.proc[i]);
+			run_queue.proc[i] = NULL;
+		}
+		run_queue.size = 0;
+	}
+	//get highest priority proc from ready queue
+	pthread_mutex_lock(&queue_lock);
+	proc = dequeue(&ready_queue);
+	pthread_mutex_unlock(&queue_lock);
     return proc;
 }
 void put_mlq_proc(struct pcb_t * proc) {
@@ -108,18 +108,18 @@ struct pcb_t * get_proc(void) {
 	/*FIXME: get a process from [ready_queue].
 	 * Remember to use lock to protect the queue.
 	 * */
-	struct pcb_t * proc = NULL;
-    /* Sử dụng khóa để đảm bảo hàng đợi không bị truy cập đồng thời */
-    pthread_mutex_lock(&queue_lock);
-    /* Lấy tiến trình từ hàng đợi ưu tiên cao nhất */
-    for (int i = 0; i < MAX_PRIO; i++) {
-        if (!is_empty(&mlq_ready_queue[i])) {  // Kiểm tra nếu hàng đợi không rỗng
-            proc = dequeue(&mlq_ready_queue[i]);
-            break;
-        }
-    }
-    pthread_mutex_unlock(&queue_lock);
-	return proc;
+	if(empty(&ready_queue)) {
+		for(int i = 0; i < run_queue.size; i++){
+			add_proc(run_queue.proc[i]);
+			run_queue.proc[i] = NULL;
+		}
+		run_queue.size = 0;
+	}
+	//get highest priority proc from ready queue
+	pthread_mutex_lock(&queue_lock);
+	proc = dequeue(&ready_queue);
+	pthread_mutex_unlock(&queue_lock);
+    return proc;
 }
 
 void put_proc(struct pcb_t * proc) {

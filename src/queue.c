@@ -12,32 +12,35 @@ int empty(struct queue_t *q)
 void enqueue(struct queue_t *q, struct pcb_t *proc)
 {
         /* TODO: put a new process to queue [q] */
-        if (q == NULL || q->size >= MAX_QUEUE_SIZE)
+        if (q == NULL || q->size == MAX_QUEUE_SIZE)
                 return;
-        q->proc[q->size++] = proc;
+        q->proc[q->size] = proc;
+        q->size++;
 }
 
 struct pcb_t *dequeue(struct queue_t *q)
 {
         /* TODO: return a pcb whose prioprity is the highest in the queue [q] and remember to remove it from q
          * */
-        if (q == NULL || q->size == 0) return NULL;
-        int highest_prioprity = 0;
-        for (int i = 1; i < q->size; i++)
-        {
-                if (q->proc[i]->priority < q->proc[highest_prioprity]->priority)
-                {
-                        highest_prioprity = i;
+        if(empty(q)) return NULL;
+        uint32_t priority_max = q->proc[0]->priority;
+        for(int i = 1; i< q->size; i++){
+                if(q->proc[i]->priority > priority_max){
+                        priority_max = q->proc[i]->priority;
                 }
         }
-
-        struct pcb_t *max_proc = q->proc[highest_prioprity];
-        for (int i = highest_prioprity; i < q->size - 1; i++)
-        {
-                q->proc[i] = q->proc[i + 1];
+        //return proc with highest priority
+        for(int i = 0; i < q->size; i++){
+                if(q->proc[i]->priority == priority_max){
+                        struct pcb_t *outproc = q->proc[i];
+                        q->proc[i] == NULL;
+                        for(int j = i; j < q->size - 1; j++){
+                                q->proc[j] = q->proc[j + 1];
+                        }
+                        q->proc[q->size - 1] = NULL;
+                        q->size--;
+                        return outproc;
+                }
         }
-
-        q->proc[q->size - 1] = NULL;
-        q->size--;
-        return max_proc;
+        return NULL;
 }
